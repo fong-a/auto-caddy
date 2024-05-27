@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Golf Club Selector</title>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <style>
+      body,
+      html {
+        height: 100%;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: #333;
+        color: #fff;
+      }
+      .container {
+        text-align: center;
+        max-width: 600px;
+      }
+      .form-group input,
+      .form-group select {
+        width: 100%;
+        max-width: 300px;
+        margin: auto;
+        text-align: center; /* Center text in input fields */
+      }
+      .btn {
+        display: block;
+        width: 100%;
+        max-width: 300px;
+        margin: auto;
+      }
+      .footer {
+        margin-top: auto;
+        text-align: center;
+      }
+      /* Disable spin buttons */
+      input[type="number"]::-webkit-outer-spin-button,
+      input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      input[type="number"] {
+        -moz-appearance: textfield;
+      }
+      .emoji {
+        font-size: 5rem;
+        display: block;
+      }
+      .card.card-body {
+        color: #000; /* Black text for explanation */
+        text-align: left; /* Left-align text in explanation */
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/jqmath/dist/jqmath-0.4.4.css"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <div class="emoji">🏌️‍♂️</div>
+      <h1>Golf Club Selector</h1>
+      <form id="clubForm">
+        <div class="form-group">
+          <label for="distanceToGreen">Distance to the Green (meters):</label>
+          <input
+            type="number"
+            class="form-control"
+            id="distanceToGreen"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="windSpeed">Wind Speed (kph):</label>
+          <input type="number" class="form-control" id="windSpeed" required />
+        </div>
+        <div class="form-group">
+          <label for="windDirection">Wind Direction (degrees):</label>
+          <input
+            type="number"
+            class="form-control"
+            id="windDirection"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="experienceLevel">Experience Level:</label>
+          <select class="form-control" id="experienceLevel" required>
+            <option value="0.02">Beginner</option>
+            <option value="0.03">Intermediate</option>
+            <option value="0.04">Advanced</option>
+            <option value="0.05">Pro</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Choose Club</button>
+      </form>
+      <h2 class="mt-4" id="result" style="display: none">
+        Recommended Club: <span id="recommendedClub"></span>
+      </h2>
+
+      <!-- Dropdown for explanation -->
+      <button
+        class="btn btn-info mt-4"
+        type="button"
+        data-toggle="collapse"
+        data-target="#explanation"
+        aria-expanded="false"
+        aria-controls="explanation"
+      >
+        Show/Hide Calculation Explanation
+      </button>
+      <div class="collapse mt-2" id="explanation">
+        <div class="card card-body">
+          <h4>Calculation Logic</h4>
+          <p>
+            The logic behind the golf club selection is based on the following
+            steps:
+          </p>
+          <ol>
+            <li>
+              <strong>Distance to the Green:</strong> The distance from the
+              current position to the middle of the green.
+            </li>
+            <li>
+              <strong>Wind Speed and Direction:</strong> The wind speed (in kph)
+              and direction (in degrees) are used to calculate the wind's effect
+              on the ball's flight.
+            </li>
+            <li>
+              <strong>Experience Level:</strong> This dropdown allows the user
+              to select their experience level, which corresponds to an
+              adjustment factor:
+              <ul>
+                <li>Beginner: 0.02</li>
+                <li>Intermediate: 0.03</li>
+                <li>Advanced: 0.04</li>
+                <li>Pro: 0.05</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Wind Adjustment:</strong> The wind's effect on the
+              distance is calculated using the formula:
+              <p>`D_w = W_s * cos(theta) * F`</p>
+              <ul>
+                <li>`D_w` is the wind adjustment distance.</li>
+                <li>`W_s` is the wind speed in kph.</li>
+                <li>`theta` is the wind direction in degrees.</li>
+                <li>`F` is the adjustment factor based on experience level.</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Adjusted Distance:</strong> The adjusted distance to the
+              green considering the wind is:
+              <p>`D_{adjusted} = D_{green} - D_{wind}`</p>
+              <ul>
+                <li>`D_{adjusted}` is the adjusted distance to the green.</li>
+                <li>`D_{green}` is the initial distance to the green.</li>
+                <li>`D_{wind}` is the wind adjustment distance.</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Club Selection:</strong> The club whose typical distance
+              is closest to the adjusted distance is selected.
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/jqmath/dist/jqmath-0.4.4.min.js"></script>
+    <script>
+      document
+        .getElementById("clubForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          // Get input values
+          const distanceToGreen = parseFloat(
+            document.getElementById("distanceToGreen").value
+          );
+          const windSpeed = parseFloat(
+            document.getElementById("windSpeed").value
+          );
+          const windDirection = parseFloat(
+            document.getElementById("windDirection").value
+          );
+          const adjustmentFactor = parseFloat(
+            document.getElementById("experienceLevel").value
+          );
+
+          // Convert club distances from yards to meters
+          const clubs = [
+            { name: "Driver", distance: 210.31 },
+            { name: "3 Wood", distance: 196.6 },
+            { name: "5 Wood", distance: 182.88 },
+            { name: "2 Iron", distance: 173.74 },
+            { name: "3 Iron", distance: 164.59 },
+            { name: "4 Iron", distance: 155.45 },
+            { name: "5 Iron", distance: 146.3 },
+            { name: "6 Iron", distance: 137.16 },
+            { name: "7 Iron", distance: 128.02 },
+            { name: "8 Iron", distance: 118.87 },
+            { name: "9 Iron", distance: 109.73 },
+            { name: "Pitching Wedge", distance: 100.58 },
+            { name: "Sand Wedge", distance: 82.3 },
+            { name: "Lob Wedge", distance: 64.01 },
+          ];
+
+          // Calculate wind adjustment in meters
+          const Dwind =
+            windSpeed *
+            (1000 / 3600) *
+            Math.cos((windDirection * Math.PI) / 180) *
+            adjustmentFactor;
+          const Dadjusted = distanceToGreen - Dwind;
+
+          // Find the closest club
+          let closestClub = clubs[0];
+          let minDifference = Math.abs(clubs[0].distance - Dadjusted);
+
+          for (let i = 1; i < clubs.length; i++) {
+            const difference = Math.abs(clubs[i].distance - Dadjusted);
+            if (difference < minDifference) {
+              closestClub = clubs[i];
+              minDifference = difference;
+            }
+          }
+
+          // Display the recommended club
+          document.getElementById("recommendedClub").textContent =
+            closestClub.name;
+          document.getElementById("result").style.display = "block";
+        });
+    </script>
+  </body>
+</html>

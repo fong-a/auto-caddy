@@ -221,12 +221,16 @@
           ];
 
           // Calculate wind adjustment in meters
-          const Dwind =
-            windSpeed *
-            (1000 / 3600) *
-            Math.cos((windDirection * Math.PI) / 180) *
-            adjustmentFactor;
-          const Dadjusted = distanceToGreen - Dwind;
+          let Dwind = 0;
+          if (windDirection > 0 && windDirection <= 90) {
+            Dwind = distanceToGreen - distanceToGreen * 0.005 * windSpeed;
+          } else if (windDirection > 90 && windDirection <= 180) {
+            Dwind = distanceToGreen + distanceToGreen * 0.01 * windSpeed;
+          } else {
+            Dwind = distanceToGreen;
+          }
+
+          const Dadjusted = Dwind;
 
           // Find the closest club
           let closestClub = clubs[0];
